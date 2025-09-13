@@ -2,6 +2,7 @@ import axios from '../../api/axios';
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import './SearchPage.css'
+import { useDebounce } from '../../hooks/useDebounce';
 
 export default function SearchPage() {
 
@@ -14,17 +15,19 @@ export default function SearchPage() {
 
     let query = useQuery();
     const searchTerm = query.get("q")
+    const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
     useEffect(() => {
-        if (searchTerm) {
-            fetchSearchMovie(searchTerm);
+        if (debouncedSearchTerm) {
+            fetchSearchMovie(debouncedSearchTerm);
         }
-    }, [searchTerm]); // searchTerm 이 변경될 때 마다 해당 useEffect 가 실해되게 하기 위해 넣음
+    }, [debouncedSearchTerm]); // searchTerm 이 변경될 때 마다 해당 useEffect 가 실해되게 하기 위해 넣음
 
-    const fetchSearchMovie = async (searchTerm) => {
+    const fetchSearchMovie = async (debouncedSearchTerm) => {
         try {
+            console.log(debouncedSearchTerm)
             const request = await axios.get(
-                `/search/multi?include_adult=false&query=${searchTerm}`
+                `/search/multi?include_adult=false&query=${debouncedSearchTerm}`
             )
             setSearchResults(request.data.results);
         } catch (error) {
@@ -40,7 +43,7 @@ export default function SearchPage() {
                         const movieImageUrl =
                         "https://image.tmdb.org/t/p/w500" + movie.backdrop_path
                         return (
-                            <div className='movie'>
+                            <div className='movie' key={movie.id}>
                                 <div
                                     className='movie__column-poster'
                                 >
@@ -60,7 +63,7 @@ export default function SearchPage() {
             <section className='no-results'>
                 <div className='no-results__text'>
                     <p>
-                        찾고자하는 검색어 "{searchTerm}"에 맞는 영화가 없습니다.
+                        찾고자하는 검색어 "{debouncedSearchTerm}"에 맞는 영화가 없습니다.
                     </p>
                 </div>
             </section>
