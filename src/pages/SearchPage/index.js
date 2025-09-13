@@ -1,11 +1,12 @@
 import axios from '../../api/axios';
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './SearchPage.css'
 import { useDebounce } from '../../hooks/useDebounce';
 
 export default function SearchPage() {
 
+    const navigate = useNavigate() // 검색 시 경로 이동시켜줌
     const [searchResults, setSearchResults] = useState([]);
 
     // useLocation() -> 현재 브라우저의 **URL 정보(location 객체)**를 가져오는 **훅(Hook)**입니다.
@@ -25,7 +26,6 @@ export default function SearchPage() {
 
     const fetchSearchMovie = async (debouncedSearchTerm) => {
         try {
-            console.log(debouncedSearchTerm)
             const request = await axios.get(
                 `/search/multi?include_adult=false&query=${debouncedSearchTerm}`
             )
@@ -39,12 +39,13 @@ export default function SearchPage() {
         return searchResults.length > 0 ? (
             <section className='search-container'>
                 {searchResults.map((movie) => {
-                    if (movie.backdrop_path != null && movie.media_type != 'person') {
+                    if (movie.backdrop_path !== null && movie.media_type !== 'person') {
                         const movieImageUrl =
                         "https://image.tmdb.org/t/p/w500" + movie.backdrop_path
                         return (
                             <div className='movie' key={movie.id}>
                                 <div
+                                    onClick={() => navigate(`/${movie.id}`)}
                                     className='movie__column-poster'
                                 >
                                     <img
